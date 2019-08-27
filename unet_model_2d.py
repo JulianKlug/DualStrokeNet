@@ -2,7 +2,7 @@
 
 import torch.nn.functional as F
 
-from unet_parts import *
+from unet_parts_2d import *
 
 class UNet(nn.Module):
     def __init__(self, n_channels, n_classes, start_size=64):

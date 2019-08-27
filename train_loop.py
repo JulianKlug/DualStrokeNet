@@ -4,7 +4,6 @@ from torch.optim import SGD, Adam
 from tqdm import tqdm
 import numpy as np
 
-from unet_model import UNet
 from metrics import get_batch_volume, dice_loss
 
 

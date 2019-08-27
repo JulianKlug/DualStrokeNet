@@ -31,7 +31,6 @@ def load_data(fname='/home/julian/withDWI_all_2016_2017/standardized_data_set.np
     pad_outputs = lambda x: np.pad(x, ((0, 0), (0, 1), (0, 1), (0, 1)),
                                    'edge')[:, None]
     to_torch = lambda x: torch.from_numpy(x.astype('float32')).float()
-    bring_z = lambda x: x.transpose(0, 4, 1, 2, 3)
     apply_mask = lambda x: masks * x
 
     # Preprocessing the data
@@ -43,10 +42,10 @@ def load_data(fname='/home/julian/withDWI_all_2016_2017/standardized_data_set.np
     masks = pad_outputs(masks)
 
     # Converting all tensors to the Torch format
-    return [to_torch(bring_z(x)) for x in [ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks]]
+    return [to_torch(x) for x in [ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks]]
 
 def generate_loaders(tensors, test_size_ratio=0.2, incremental_set_ratio=0.3,
-                     seed=0, batch_size=2, use_increment_set=True):
+                     seed=0, batch_size=2, use_increment_set=True, threeD=False):
 
     ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks = tensors
     subject_count = mri_inputs.shape[0]
@@ -62,13 +61,19 @@ def generate_loaders(tensors, test_size_ratio=0.2, incremental_set_ratio=0.3,
     incremental_set_indices = indices[test_set_size:][:incremental_set_size]
     train_set_indices = indices[test_set_size + incremental_set_size:]
 
+    bring_z = lambda x: x.transpose(0, 4, 1, 2, 3)
     flatten_data = lambda x: x.reshape(x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4])
+
+    if not threeD:
+        preprocess = lambda x: flatten_data(bring_z(x))
+    else:
+        preprocess = lambda x: x
 
     def generate_set(indices, inputs, outputs, is_train=False):
         sel_inputs = inputs[indices]
         sel_outputs = outputs[indices]
 
-        ds = TensorDataset(flatten_data(sel_inputs), flatten_data(sel_outputs))
+        ds = TensorDataset(preprocess(sel_inputs), preprocess(sel_outputs))
         dl = DataLoader(ds, batch_size=batch_size, shuffle=is_train,
                         pin_memory=True)
         return dl
