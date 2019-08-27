@@ -3,9 +3,7 @@ import sys
 
 from data import load_data, generate_loaders
 from train_loop import train
-from unet_model import UNet
 from utils import csv_callback
-import torch
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", "-e", help='Number of epochs to train on',
@@ -24,14 +22,20 @@ parser.add_argument("--lr-2", help='learning rate to use in the second phase',
                     type=float, default=0.001)
 parser.add_argument("--save-model", help='where to store the model at the end',
                     type=str, default=None)
+parser.add_argument("--two-d", help='Use two dimensional model',
+                    action='store_true', default=False)
 args = parser.parse_args()
 
 
 
 if True and __name__ == '__main__':
+    if args.two_d:
+        from unet_model_2d import UNet
+    else:
+        from unet_model_3d import UNet
     tensors = load_data(fname=args.dataset_location)
     ct_sets, _ = generate_loaders(tensors, batch_size=args.batch_size,
-                                  use_increment_set=False)
+                                  use_increment_set=False, threeD= not args.two_d)
     callback = csv_callback(sys.stdout)
     model = UNet(5, 1, args.channels)
     model.cuda()
