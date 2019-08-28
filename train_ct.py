@@ -24,6 +24,8 @@ parser.add_argument("--save-model", help='where to store the model at the end',
                     type=str, default=None)
 parser.add_argument("--two-d", help='Use two dimensional model',
                     action='store_true', default=False)
+parser.add_argument("--cpu", help='Use CPU',
+                    action='store_true', default=False)
 args = parser.parse_args()
 
 
@@ -38,7 +40,8 @@ if True and __name__ == '__main__':
                                   use_increment_set=False, threeD= not args.two_d)
     callback = csv_callback(sys.stdout)
     model = UNet(5, 1, args.channels)
-    model.cuda()
+    if not args.cpu:
+        model.cuda()
     train(model, ct_sets['train'], ct_sets['test'],
           lr_1=args.lr_1, lr_2=args.lr_2, epochs=args.epochs,
-          metrics_callback=callback, split=0, save_path=args.save_model)
+          metrics_callback=callback, split=0, save_path=args.save_model, force_cpu=args.cpu)

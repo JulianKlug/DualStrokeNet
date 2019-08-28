@@ -51,7 +51,8 @@ class DefaultOrderedDict(OrderedDict):
         return 'OrderedDefaultDict(%s, %s)' % (self.default_factory,
                                                OrderedDict.__repr__(self))
 
-def forward(model, loader, criterion, optimizer=None):
+
+def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
     if optimizer is None:
         model.eval()
@@ -64,8 +65,9 @@ def forward(model, loader, criterion, optimizer=None):
     all_labels = []
 
     for inputs, outputs in tqdm(loader):
-        inputs = inputs.cuda(non_blocking=True)
-        outputs = outputs.cuda(non_blocking=True)
+        if not force_cpu:
+            inputs = inputs.cuda(non_blocking=True)
+            outputs = outputs.cuda(non_blocking=True)
 
         prediction = model(inputs)
         all_loss = dice_loss(torch.sigmoid(prediction), outputs, train=True)
@@ -91,7 +93,8 @@ def forward(model, loader, criterion, optimizer=None):
     return OrderedDict({k: np.mean(v) for (k, v) in metrics.items()})
 
 
-def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, epochs=10, split=150, save_path=None):
+def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, epochs=10, split=150, save_path=None,
+          force_cpu=False):
     criterion = torch.nn.BCEWithLogitsLoss()
     first_phase_optimizer = SGD(model.parameters(), lr=lr_1, momentum=0)
     second_phase_optimizer = SGD(model.parameters(), lr=lr_2, momentum=0.99)
@@ -101,8 +104,8 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
             optimizer = first_phase_optimizer
         else:
             optimizer = second_phase_optimizer
-        tm = forward(model, train_loader, criterion, optimizer)
-        vm = forward(model, val_loader, criterion)
+        tm = forward(model, train_loader, criterion, optimizer, force_cpu=force_cpu)
+        vm = forward(model, val_loader, criterion, force_cpu=force_cpu)
         metrics = OrderedDict()
         metrics['epoch'] = e
         for k, v in tm.items():
