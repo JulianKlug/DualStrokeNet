@@ -94,7 +94,7 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
 
 def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, epochs=10, split=150, save_path=None,
-          force_cpu=False):
+          force_cpu=False, log=print):
     criterion = torch.nn.BCEWithLogitsLoss()
     first_phase_optimizer = SGD(model.parameters(), lr=lr_1, momentum=0)
     second_phase_optimizer = SGD(model.parameters(), lr=lr_2, momentum=0.99)
