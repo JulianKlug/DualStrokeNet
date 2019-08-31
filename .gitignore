@@ -1,3 +1,6 @@
+logs/
+log/
+
 # MAC stuff
 .DS_Store
 */.DS_Store
