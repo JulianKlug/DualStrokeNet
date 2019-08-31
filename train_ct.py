@@ -35,11 +35,13 @@ args = parser.parse_args()
 if True and __name__ == '__main__':
     if args.two_d:
         from unet_model_2d import UNet
+        dimensions = '2D'
     else:
         from unet_model_3d import UNet
+        dimensions = '3D'
 
     if args.log is None:
-        params = 'train_mri_' + dimensions \
+        params = 'train_ct_' + dimensions \
                  + '_c' + str(args.channels) + '_b' + str(args.batch_size) + '_lr1-' + str(args.lr_1) + '_lr2-' \
                  + str(args.lr_2) + '_t' + str(args.transition)
         args.log = os.path.join(os.getcwd(), 'logs', params + '.log')
