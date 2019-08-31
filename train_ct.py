@@ -3,7 +3,7 @@ import sys, os
 
 from data import load_data, generate_loaders
 from train_loop import train
-from utils import csv_callback
+from utils import csv_callback, log_settings
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", "-e", help='Number of epochs to train on',
@@ -35,22 +35,15 @@ args = parser.parse_args()
 if True and __name__ == '__main__':
     if args.two_d:
         from unet_model_2d import UNet
-        dimensions = '2D'
     else:
         from unet_model_3d import UNet
-        dimensions = '3D'
 
-    if args.log is None:
-        params = 'train_ct_' + dimensions \
-                 + '_c' + str(args.channels) + '_b' + str(args.batch_size) + '_lr1-' + str(args.lr_1) + '_lr2-' \
-                 + str(args.lr_2) + '_t' + str(args.transition)
-        args.log = os.path.join(os.getcwd(), 'logs', params + '.log')
-    print('Logging to', args.log)
+    log_file = log_settings(args, 'ct')
 
     tensors = load_data(fname=args.dataset_location)
     ct_sets, _ = generate_loaders(tensors, batch_size=args.batch_size,
                                   use_increment_set=False, threeD= not args.two_d)
-    callback = csv_callback(open(args.log, 'w'))
+    callback = csv_callback(open(log_file, 'w'))
     model = UNet(5, 1, args.channels)
     if not args.cpu:
         model.cuda()
