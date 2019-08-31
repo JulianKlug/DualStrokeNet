@@ -4,7 +4,6 @@ import sys, os
 from data import load_data, generate_loaders
 from train_loop import train
 from utils import csv_callback
-from logger import Logger
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", "-e", help='Number of epochs to train on',
@@ -48,13 +47,10 @@ if __name__ == '__main__':
         args.log = os.path.join(os.getcwd(), 'logs', params + '.log')
         print(args.log)
 
-    logger = Logger(args.log)
-    log = logger.log
-
     tensors = load_data(fname=args.dataset_location)
     _, mri_sets = generate_loaders(tensors, batch_size=args.batch_size,
                                    threeD= not args.two_d)
-    callback = csv_callback(args.log)
+    callback = csv_callback(open(args.log, 'w'))
     model = UNet(4, 1, args.channels)
     if not args.cpu:
         model.cuda()
