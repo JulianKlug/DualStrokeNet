@@ -45,7 +45,7 @@ if __name__ == '__main__':
                  + '_c' + str(args.channels) + '_b' + str(args.batch_size) + '_lr1-' + str(args.lr_1) + '_lr2-' \
                  + str(args.lr_2) + '_t' + str(args.transition)
         args.log = os.path.join(os.getcwd(), 'logs', params + '.log')
-        print(args.log)
+    print('Logging to', args.log)
 
     tensors = load_data(fname=args.dataset_location)
     _, mri_sets = generate_loaders(tensors, batch_size=args.batch_size,
@@ -56,4 +56,4 @@ if __name__ == '__main__':
         model.cuda()
     train(model, mri_sets['train'], mri_sets['test'],
           lr_1=args.lr_1, lr_2=args.lr_2, epochs=args.epochs,
-          metrics_callback=callback, split=0, save_path=args.save_model, force_cpu=args.cpu, log=log)
+          metrics_callback=callback, split=0, save_path=args.save_model, force_cpu=args.cpu)
