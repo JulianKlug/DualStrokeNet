@@ -36,7 +36,6 @@ def log_settings(args, modality):
     params['modality'] = modality
     params_path = os.path.join(os.path.dirname(args.log), 'params', os.path.basename(args.log).split('.')[0] + '_params.json')
     if not os.path.isdir(os.path.dirname(params_path)):
-        print(os.path.dirname(params_path))
         os.mkdir(os.path.dirname(params_path))
     with open(params_path, 'w') as file:
         json.dump(params, file)
