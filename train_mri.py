@@ -22,8 +22,8 @@ parser.add_argument("--lr-2", help='learning rate to use in the second phase',
                     type=float, default=0.001)
 parser.add_argument("--save-model", help='where to store the model at the end',
                     type=str, default=None)
-parser.add_argument('--log', '-l', help='where to store logs',
-                     type=str, default=None)
+parser.add_argument('--log', '-l', help='Store logs in automatically named log file',
+                     action='store_true', default=False)
 parser.add_argument("--two-d", help='Use two dimensional model',
                     action='store_true', default=False)
 parser.add_argument("--cpu", help='Use CPU',
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     tensors = load_data(fname=args.dataset_location)
     _, mri_sets = generate_loaders(tensors, batch_size=args.batch_size,
                                    threeD= not args.two_d)
-    callback = csv_callback(open(log_file, 'w'))
+    callback = csv_callback(log_file)
     model = UNet(4, 1, args.channels)
     if not args.cpu:
         model.cuda()

@@ -1,5 +1,4 @@
-import os
-import torch
+import os, sys
 import json
 
 def csv_callback(file_descriptor):
@@ -21,23 +20,27 @@ def log_settings(args, modality):
     else:
         dimensions = '3D'
 
-    if args.log is None:
-        params_str = 'train_mri_' + dimensions \
+    params_str = 'train_' + modality + '_' + dimensions \
                  + '_c' + str(args.channels) + '_b' + str(args.batch_size) + '_lr1-' + str(args.lr_1) + '_lr2-' \
                  + str(args.lr_2) + '_t' + str(args.transition)
-        args.log = os.path.join(os.getcwd(), 'logs', params_str + '.log')
-    print('Logging to', args.log)
 
-    if not os.path.isdir(os.path.dirname(args.log)):
-        os.mkdir(os.path.dirname(args.log))
+    if args.log:
+        log_file = os.path.join(os.getcwd(), 'logs', params_str + '.log')
+        print('Logging to', log_file)
+        if not os.path.isdir(os.path.join(os.getcwd(), 'logs')):
+            os.mkdir(os.path.dirname(log_file))
+        log_file = open(log_file, 'w')
+    else:
+        log_file = sys.stdout
+
 
     # Save parameters
     params = vars(args)
     params['modality'] = modality
-    params_path = os.path.join(os.path.dirname(args.log), 'params', os.path.basename(args.log).split('.')[0] + '_params.json')
+    params_path = os.path.join(os.getcwd(), 'params', params_str + '_params.json')
     if not os.path.isdir(os.path.dirname(params_path)):
         os.mkdir(os.path.dirname(params_path))
     with open(params_path, 'w') as file:
         json.dump(params, file)
 
-    return args.log
+    return log_file
