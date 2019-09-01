@@ -61,7 +61,7 @@ def generate_loaders(tensors, test_size_ratio=0.2, incremental_set_ratio=0.3,
     incremental_set_indices = indices[test_set_size:][:incremental_set_size]
     train_set_indices = indices[test_set_size + incremental_set_size:]
 
-    bring_z = lambda x: x.transpose(0, 4, 1, 2, 3)
+    bring_z = lambda x: x.permute(0, 4, 1, 2, 3)
     flatten_data = lambda x: x.reshape(x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4])
 
     if not threeD:
