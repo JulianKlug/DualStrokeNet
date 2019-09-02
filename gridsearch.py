@@ -4,8 +4,8 @@ import os
 epochs = 30
 modality = 'mri'
 
-for network_size in range(1, 128, 12):
-    for batch_size in 2.56 * 10**np.random.uniform(1, 10, size=4):
+for network_size in range(1, 128, 24):
+    for batch_size in 2**np.random.uniform(0, 8, size=8):
         batch_size = int(batch_size)
         for lr in 10**np.random.uniform(-5, 1, size=4):
             os.system(f'python train_{modality}.py'
