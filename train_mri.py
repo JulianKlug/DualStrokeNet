@@ -49,4 +49,4 @@ if __name__ == '__main__':
         model.cuda()
     train(model, mri_sets['train'], mri_sets['test'],
           lr_1=args.lr_1, lr_2=args.lr_2, epochs=args.epochs,
-          metrics_callback=callback, split=0, save_path=args.save_model, force_cpu=args.cpu)
+          metrics_callback=callback, split=args.transition, save_path=args.save_model, force_cpu=args.cpu)
