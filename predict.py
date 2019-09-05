@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 def predict(model_path, data_path, modality, force_cpu=False):
     tensors = load_data(fname=data_path)
-    ct_sets, mri_sets = generate_loaders(tensors, batch_size=1,
+    ct_sets, mri_sets = generate_loaders(tensors, batch_size=64,
                                    threeD=False)
     if modality == 'mri':
         data_sets = mri_sets
@@ -27,6 +27,7 @@ def predict(model_path, data_path, modality, force_cpu=False):
         model = torch.load(model_path, map_location=torch.device('cpu'))
     else:
         model = torch.load(model_path, map_location=torch.device('cpu'))
+    model.eval()
 
     loader = data_sets['train']
     train_predictions = [model(inputs) for inputs, outputs in tqdm(loader)]
@@ -47,4 +48,3 @@ def predict(model_path, data_path, modality, force_cpu=False):
 
 if __name__ == '__main__':
     predict(args.model_location, args.dataset_location, args.input_type, args.cpu)
-    
