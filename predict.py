@@ -16,12 +16,17 @@ args = parser.parse_args()
 
 def predict(model_path, data_path, modality, force_cpu=False):
     tensors = load_data(fname=data_path)
-    ct_sets, mri_sets = generate_loaders(tensors, batch_size=64,
-                                   threeD=False)
+    ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks = tensors
+    n_subj = ct_inputs.shape[0]
+    ct_sets, mri_sets = generate_loaders(tensors, batch_size=n_subj,
+                                   threeD=True)
+
     if modality == 'mri':
         data_sets = mri_sets
+        n_z = mri_inputs.shape[-1]
     else:
         data_sets = ct_sets
+        n_z = ct_inputs.shape[-1]
 
     if force_cpu:
         model = torch.load(model_path, map_location=torch.device('cpu'))
@@ -30,18 +35,23 @@ def predict(model_path, data_path, modality, force_cpu=False):
     model.eval()
 
     loader = data_sets['train']
-    train_predictions = [model(inputs) for inputs, outputs in tqdm(loader)]
+    train_input = [inputs for inputs, outputs in tqdm(loader)]
+    train_predictions = [model(inputs[:, :, :, :, n_z/2]) for inputs, outputs in tqdm(loader)]
     train_GT = [outputs for inputs, outputs in tqdm(loader)]
 
     loader = data_sets['test']
-    test_predictions = [model(inputs) for inputs, outputs in tqdm(loader)]
+    test_input = [inputs for inputs, outputs in tqdm(loader)]
+    test_predictions = [model(inputs[:, :, :, :, n_z/2]) for inputs, outputs in tqdm(loader)]
     test_GT = [outputs for inputs, outputs in tqdm(loader)]
 
     save_dir = os.path.join(os.path.dirname(data_path), 'model_prediction')
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
+
+    torch.save(train_input, os.path.join(save_dir, 'train_input.pth'))
     torch.save(train_predictions, os.path.join(save_dir, 'train_predictions.pth'))
     torch.save(train_GT, os.path.join(save_dir, 'train_GT.pth'))
+    torch.save(test_input, os.path.join(save_dir, 'test_input.pth'))
     torch.save(test_predictions, os.path.join(save_dir, 'test_predictions.pth'))
     torch.save(test_GT, os.path.join(save_dir, 'test_GT.pth'))
 
