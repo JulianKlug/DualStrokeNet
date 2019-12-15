@@ -3,12 +3,21 @@ from matplotlib import gridspec
 import torch
 import numpy as np
 
-predictions = torch.load('/Users/julian/predictions.pth', map_location=torch.device('cpu'))
-lesions = torch.load('/Users/julian/lesions.pth', map_location=torch.device('cpu'))
+inputs = torch.load('/Users/julian/temp/model_prediction_2/train_input.pth', map_location=torch.device('cpu'))
+predictions = torch.load('/Users/julian/temp/model_prediction_2/train_predictions.pth', map_location=torch.device('cpu'))
+lesions = torch.load('/Users/julian/temp/model_prediction_2/train_GT.pth', map_location=torch.device('cpu'))
+
+# as everything was processed in one batch, there is only one item in the batch
+inputs = inputs[0]
+predictions = predictions[0]
+lesions = lesions[0]
+
+n_z = inputs.shape[-1]
+n_c = inputs.shape[1]
 
 
 plt.switch_backend('agg')
-ncol = 2
+ncol = 8
 nrow = len(predictions) + 2
 figure = plt.figure(figsize=(ncol + 1, nrow + 1))
 gs = gridspec.GridSpec(nrow, ncol,
@@ -34,14 +43,18 @@ def visual_add(image, i_subj, i_image, gs, image_id=None):
 # %%
 i_slice = 0
 for i_slice, pred in enumerate(predictions):
-    visual_add(np.squeeze(lesions[i_slice].detach().numpy()), i_slice, 0, gs, '')
-    visual_add(np.squeeze(pred.detach().numpy()), i_slice, 1, gs, '')
+    i_col = 0
+    for channel in range(n_c):
+        visual_add(np.squeeze(inputs[i_slice, channel, ..., int(n_z/2)].detach().numpy()), i_slice, i_col, gs, '')
+        i_col += 1
+    visual_add(np.squeeze(lesions[i_slice, ..., int(n_z/2)].detach().numpy()), i_slice, i_col, gs, '')
+    visual_add(np.squeeze(pred.detach().numpy()), i_slice, i_col + 1, gs, '')
     i_slice += 1
 
 
 import os
 
-data_dir = '/Users/julian/temp'
+data_dir = os.path.dirname('/Users/julian/temp/model_prediction_2/test_predictions.pth')
 plt.ioff()
 plt.switch_backend('agg')
 figure_path = os.path.join(data_dir, 'prediction_visualisation.png')
