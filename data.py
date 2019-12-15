@@ -88,7 +88,7 @@ def generate_loaders(tensors, test_size_ratio=0.2, incremental_set_ratio=0.3,
     }
 
     mri_sets = {
-        'train': generate_set(torch.cat([train_set_indices ,incremental_set_indices]),
+        'train': generate_set(torch.cat([train_set_indices, incremental_set_indices]),
                               mri_inputs, mri_lesions, True),
         'test': generate_set(test_set_indices, mri_inputs, mri_lesions)
     }
