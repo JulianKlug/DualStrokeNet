@@ -12,6 +12,12 @@ def standardise(imgX):
     return rescaled_imgX
 
 def load_data(fname='/home/julian/withDWI_all_2016_2017/standardized_data_set.npz'):
+    """
+    Load data as tensors
+    :param fname: dataset location
+    :return: list of tensors for ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks
+            with a shape : n_subj, n_c, n_x, n_y, n_z
+    """
 
     raw_data = np.load(fname)
     # Loading the keys of interest from the dataset file
@@ -46,11 +52,22 @@ def load_data(fname='/home/julian/withDWI_all_2016_2017/standardized_data_set.np
 
 def generate_loaders(tensors, test_size_ratio=0.2, incremental_set_ratio=0.3,
                      seed=0, batch_size=2, use_increment_set=True, threeD=False):
+    """
 
-    ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks = tensors
+    :param tensors:
+    :param test_size_ratio:
+    :param incremental_set_ratio:
+    :param seed:
+    :param batch_size:
+    :param use_increment_set:
+    :param threeD:
+    :return: loader loading a list of batches with input / output
+    """
+
+    ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks, ids = tensors
     subject_count = mri_inputs.shape[0]
 
-    # Suffling all the indices
+    # Shuffling all the indices
     indices = np.random.RandomState(seed=seed).permutation(subject_count)
     indices = torch.from_numpy(indices)
 
@@ -78,14 +95,17 @@ def generate_loaders(tensors, test_size_ratio=0.2, incremental_set_ratio=0.3,
                         pin_memory=True)
         return dl
 
-    if not use_increment_set:
-        train_set_indices = torch.cat([train_set_indices ,incremental_set_indices])
-
-    ct_sets = {
-        'train': generate_set(train_set_indices, ct_inputs, ct_lesions, True),
-        'incremental': generate_set(incremental_set_indices, ct_inputs, ct_lesions),
-        'test': generate_set(test_set_indices, ct_inputs, ct_lesions)
-    }
+    if use_increment_set:
+        ct_sets = {
+            'train': generate_set(train_set_indices, ct_inputs, ct_lesions, True),
+            'incremental': generate_set(incremental_set_indices, ct_inputs, ct_lesions),
+            'test': generate_set(test_set_indices, ct_inputs, ct_lesions)
+        }
+    else:
+        ct_sets = {
+            'train': generate_set(torch.cat([train_set_indices, incremental_set_indices]), ct_inputs, ct_lesions, True),
+            'test': generate_set(test_set_indices, ct_inputs, ct_lesions)
+        }
 
     mri_sets = {
         'train': generate_set(torch.cat([train_set_indices, incremental_set_indices]),
