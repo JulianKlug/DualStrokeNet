@@ -64,7 +64,7 @@ def generate_loaders(tensors, test_size_ratio=0.2, incremental_set_ratio=0.3,
     :return: loader loading a list of batches with input / output
     """
 
-    ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks, ids = tensors
+    ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks = tensors
     subject_count = mri_inputs.shape[0]
 
     # Shuffling all the indices
