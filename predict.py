@@ -36,12 +36,12 @@ def predict(model_path, data_path, modality, force_cpu=False):
 
     loader = data_sets['train']
     train_input = [inputs for inputs, outputs in tqdm(loader)]
-    train_predictions = [model(inputs[:, :, :, :, n_z/2]) for inputs, outputs in tqdm(loader)]
+    train_predictions = [model(inputs[:, :, :, :, int(n_z/2)]) for inputs, outputs in tqdm(loader)]
     train_GT = [outputs for inputs, outputs in tqdm(loader)]
 
     loader = data_sets['test']
     test_input = [inputs for inputs, outputs in tqdm(loader)]
-    test_predictions = [model(inputs[:, :, :, :, n_z/2]) for inputs, outputs in tqdm(loader)]
+    test_predictions = [model(inputs[:, :, :, :, int(n_z/2)]) for inputs, outputs in tqdm(loader)]
     test_GT = [outputs for inputs, outputs in tqdm(loader)]
 
     save_dir = os.path.join(os.path.dirname(data_path), 'model_prediction')
