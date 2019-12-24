@@ -1,6 +1,7 @@
 import torch, os, argparse
 from tqdm import tqdm
 from data import load_data, generate_loaders
+import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset-location", "-d", help='Where is the dataset',
@@ -35,16 +36,15 @@ def predict(model_path, data_path, modality, force_cpu=False):
     model.eval()
 
     loader = data_sets['train']
-    train_input = [inputs for inputs, outputs in tqdm(loader)]
-    train_predictions = [model(inputs[:, :, :, :, int(n_z/2)]) for inputs, outputs in tqdm(loader)]
-    train_GT = [outputs for inputs, outputs in tqdm(loader)]
+    train_input, train_GT = map(list, zip(*[subj_data for subj_data in tqdm(loader)]))
+    train_predictions = [model(x[:, :, :, :, int(n_z/2)]) for x in train_input]
 
     loader = data_sets['test']
-    test_input = [inputs for inputs, outputs in tqdm(loader)]
-    test_predictions = [model(inputs[:, :, :, :, int(n_z/2)]) for inputs, outputs in tqdm(loader)]
-    test_GT = [outputs for inputs, outputs in tqdm(loader)]
+    test_input, test_GT = map(list, zip(*[subj_data for subj_data in tqdm(loader)]))
+    test_predictions = [model(x[:, :, :, :, int(n_z/2)]) for x in test_input]
 
-    save_dir = os.path.join(os.path.dirname(data_path), 'model_prediction')
+
+    save_dir = os.path.join(os.path.dirname(model_path), 'model_prediction')
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
 
