@@ -60,7 +60,7 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
     metrics = DefaultOrderedDict(list)
 
-    for inputs, outputs in tqdm(loader):
+    for inputs, outputs in tqdm(loader, position=0, leave=True):
         if not force_cpu:
             inputs = inputs.cuda(non_blocking=True)
             outputs = outputs.cuda(non_blocking=True)
@@ -95,6 +95,7 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
     second_phase_optimizer = SGD(model.parameters(), lr=lr_2, momentum=0.99)
     best_loss = np.inf
     for e in range(epochs):
+        print('Epoch:', e + 1, '/', epochs)
         if e < split:
             optimizer = first_phase_optimizer
         else:
@@ -107,6 +108,7 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
             metrics['train_' + k] = v
         for k, v in vm.items():
             metrics['test_' + k] = v
+        print(metrics)
         if metrics_callback is not None:
             metrics_callback(metrics)
         if metrics['train_loss'] < best_loss and save_path is not None:
