@@ -61,22 +61,17 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
     metrics = DefaultOrderedDict(list)
 
-    all_predictions = []
-    all_labels = []
-
     for inputs, outputs in tqdm(loader):
         if not force_cpu:
             inputs = inputs.cuda(non_blocking=True)
             outputs = outputs.cuda(non_blocking=True)
 
         prediction = model(inputs)
-        all_loss = dice_loss(torch.sigmoid(prediction), outputs, train=True)
-        all_predictions.append(prediction.data.cpu().numpy().reshape(-1))
-        all_labels.append(outputs.data.cpu().numpy().reshape(-1))
-        loss = all_loss.mean()
+        loss = criterion(prediction, outputs)
+
         metrics['loss'].append(loss.item())
 
-        hard_prediction = (prediction > 0).float()
+        hard_prediction = (torch.sigmoid(prediction) > 0.5).float()
         predicted_volumes = get_batch_volume(hard_prediction)
         true_volumes = get_batch_volume(outputs)
 
