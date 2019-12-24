@@ -61,9 +61,6 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
     metrics = DefaultOrderedDict(list)
 
-    all_predictions = []
-    all_labels = []
-
     for inputs, outputs in tqdm(loader):
         if not force_cpu:
             inputs = inputs.cuda(non_blocking=True)
@@ -71,20 +68,17 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
         prediction = model(inputs)
         loss = criterion(prediction, outputs)
-        # all_loss = dice_loss(torch.sigmoid(prediction), outputs, train=True)
-        # all_predictions.append(prediction.data.cpu().numpy().reshape(-1))
-        # all_labels.append(outputs.data.cpu().numpy().reshape(-1))
-        # loss = all_loss.mean()
+
         metrics['loss'].append(loss.item())
-        #
-        # hard_prediction = (prediction > 0).float()
-        # predicted_volumes = get_batch_volume(hard_prediction)
-        # true_volumes = get_batch_volume(outputs)
-        #
-        # metrics['volume_error'].append((torch.abs(predicted_volumes - true_volumes) / (true_volumes + 1e-5)).mean().item())
-        #
-        # dice = 1 - dice_loss(hard_prediction, outputs).item()
-        # metrics['dice'].append(dice)
+
+        hard_prediction = (torch.sigmoid(prediction) > 0.5).float()
+        predicted_volumes = get_batch_volume(hard_prediction)
+        true_volumes = get_batch_volume(outputs)
+
+        metrics['volume_error'].append((torch.abs(predicted_volumes - true_volumes) / (true_volumes + 1e-5)).mean().item())
+
+        dice = 1 - dice_loss(hard_prediction, outputs).item()
+        metrics['dice'].append(dice)
 
         if optimizer is not None:
             optimizer.zero_grad()

@@ -4,8 +4,8 @@ import torch, os
 import numpy as np
 from metrics import dice_loss
 
-data_dir = '/Users/julian/temp/dual_net_models/test1_ct/model_prediction/'
-setting = 'train'
+data_dir = '/Users/julian/temp/dual_net_models/minimal_BCE/model_prediction/'
+setting = 'test'
 inputs = torch.load(os.path.join(data_dir, setting + '_input.pth'), map_location=torch.device('cpu'))
 predictions = torch.load(os.path.join(data_dir, setting + '_predictions.pth'), map_location=torch.device('cpu'))
 lesions = torch.load(os.path.join(data_dir, setting + '_GT.pth'), map_location=torch.device('cpu'))
@@ -56,7 +56,7 @@ for i_slice, pred in enumerate(predictions):
     print(str(all_loss))
 
     visual_add(np.squeeze(torch.sigmoid(pred).detach().numpy()), i_slice, i_col + 2, gs, str(all_loss))
-    hard_prediction = (pred > 0).float()
+    hard_prediction = (pred > 0.5).float()
     dice = 1 - dice_loss(hard_prediction, np.squeeze(lesions[i_slice, ..., int(n_z/2)])).item()
     print(str(dice))
     visual_add(np.squeeze(hard_prediction.detach().numpy()), i_slice, i_col + 3, gs, str(dice))
