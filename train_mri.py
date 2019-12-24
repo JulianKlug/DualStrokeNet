@@ -20,7 +20,7 @@ parser.add_argument("--lr-1", help='learning rate to use in the first phase',
                     type=float, default=0.1)
 parser.add_argument("--lr-2", help='learning rate to use in the second phase',
                     type=float, default=0.001)
-parser.add_argument("--save-model", help='where to store the model at the end',
+parser.add_argument("--save-model", '-s', help='where to store the model at the end',
                     type=str, default=None)
 parser.add_argument('--log', '-l', help='Store logs in automatically named log file',
                      action='store_true', default=False)
@@ -38,11 +38,15 @@ if __name__ == '__main__':
     else:
         from unet_model_3d import UNet
 
-    log_file = log_settings(args, 'mri')
-
     tensors = load_data(fname=args.dataset_location)
     _, mri_sets = generate_loaders(tensors, batch_size=args.batch_size,
                                    threeD= not args.two_d)
+
+    # Create the directory to save the model, the logs and the params
+    if args.save_model is not None and not os.path.isdir(args.save_model):
+        os.mkdir(args.save_model)
+
+    log_file = log_settings(args, 'mri', args.save_model)
     callback = csv_callback(log_file)
     model = UNet(4, 1, args.channels)
     if not args.cpu:

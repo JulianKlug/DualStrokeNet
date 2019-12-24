@@ -1,4 +1,4 @@
-import torch
+import torch, os
 from collections import defaultdict, OrderedDict, Callable
 from torch.optim import SGD, Adam
 from tqdm import tqdm
@@ -116,4 +116,4 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
             metrics_callback(metrics)
         if metrics['train_loss'] < best_loss and save_path is not None:
             best_loss = metrics['train_loss']
-            torch.save(model, save_path)
+            torch.save(model, os.path.join(save_path, os.path.basename(save_path + '.pth')))
