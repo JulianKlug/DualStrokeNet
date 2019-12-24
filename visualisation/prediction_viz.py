@@ -1,11 +1,14 @@
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-import torch
+import torch, os
 import numpy as np
+from metrics import dice_loss
 
-inputs = torch.load('/Users/julian/temp/model_prediction_2/train_input.pth', map_location=torch.device('cpu'))
-predictions = torch.load('/Users/julian/temp/model_prediction_2/train_predictions.pth', map_location=torch.device('cpu'))
-lesions = torch.load('/Users/julian/temp/model_prediction_2/train_GT.pth', map_location=torch.device('cpu'))
+data_dir = '/Users/julian/temp/dual_net_models/test1_ct/model_prediction/'
+setting = 'train'
+inputs = torch.load(os.path.join(data_dir, setting + '_input.pth'), map_location=torch.device('cpu'))
+predictions = torch.load(os.path.join(data_dir, setting + '_predictions.pth'), map_location=torch.device('cpu'))
+lesions = torch.load(os.path.join(data_dir, setting + '_GT.pth'), map_location=torch.device('cpu'))
 
 # as everything was processed in one batch, there is only one item in the batch
 inputs = inputs[0]
@@ -17,7 +20,7 @@ n_c = inputs.shape[1]
 
 
 plt.switch_backend('agg')
-ncol = 8
+ncol = 9
 nrow = len(predictions) + 2
 figure = plt.figure(figsize=(ncol + 1, nrow + 1))
 gs = gridspec.GridSpec(nrow, ncol,
@@ -35,8 +38,8 @@ def visual_add(image, i_subj, i_image, gs, image_id=None):
     # plot image
     ax = plt.subplot(gs[i_row, i_col])
     if image_id is not None: ax.set_title(image_id, fontdict={'fontsize': 10})
-    plt.imshow(-image.T)
-    plt.set_cmap('Greys')
+    plt.imshow(image.T)
+    plt.set_cmap('gray')
     plt.axis('off')
 
 
@@ -49,14 +52,22 @@ for i_slice, pred in enumerate(predictions):
         i_col += 1
     visual_add(np.squeeze(lesions[i_slice, ..., int(n_z/2)].detach().numpy()), i_slice, i_col, gs, '')
     visual_add(np.squeeze(pred.detach().numpy()), i_slice, i_col + 1, gs, '')
+    all_loss = dice_loss(torch.sigmoid(pred), lesions[i_slice, ..., int(n_z/2)], train=True).item()
+    print(str(all_loss))
+
+    visual_add(np.squeeze(torch.sigmoid(pred).detach().numpy()), i_slice, i_col + 2, gs, str(all_loss))
+    hard_prediction = (pred > 0).float()
+    dice = 1 - dice_loss(hard_prediction, np.squeeze(lesions[i_slice, ..., int(n_z/2)])).item()
+    print(str(dice))
+    visual_add(np.squeeze(hard_prediction.detach().numpy()), i_slice, i_col + 3, gs, str(dice))
     i_slice += 1
 
 
 import os
 
-data_dir = os.path.dirname('/Users/julian/temp/model_prediction_2/test_predictions.pth')
 plt.ioff()
 plt.switch_backend('agg')
-figure_path = os.path.join(data_dir, 'prediction_visualisation.png')
+figure_path = os.path.join(data_dir, setting + '_prediction_visualisation.png')
+print(figure_path)
 figure.savefig(figure_path, dpi='figure', format='png')
 plt.close(figure)
