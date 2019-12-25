@@ -111,7 +111,7 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
             metrics['test_' + k] = v
         print(metrics)
         if metrics_callback is not None:
-            metrics_callback(metrics)
+            metrics_callback(metrics, e)
         if metrics['train_loss'] < best_loss and save_path is not None:
             best_loss = metrics['train_loss']
             torch.save(model, os.path.join(save_path, os.path.basename(save_path + '.pth')))

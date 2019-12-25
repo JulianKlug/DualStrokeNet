@@ -1,8 +1,21 @@
 import os, sys
 import json
+from plots.plot_learning_curves import plot_learning_curves
+
+
+def metrics_callback_group(log_file_descriptor, plot_period=1):
+    csv_call = csv_callback(log_file_descriptor)
+    plot_call = plot_callback(log_file_descriptor, plot_period)
+
+    def inner(metrics, epoch):
+        csv_call(metrics)
+        plot_call(epoch)
+    return inner
+
 
 def csv_callback(file_descriptor):
     headers_printed = False
+
     def inner(metrics):
         nonlocal headers_printed
         if not headers_printed:
@@ -13,6 +26,19 @@ def csv_callback(file_descriptor):
         file_descriptor.write('\n')
         file_descriptor.flush()
     return inner
+
+
+def plot_callback(log_file_descriptor, period=1):
+    def inner(epoch):
+        epoch += 1 # as callback is called at the end of the epoch, thus epoch + 1 epochs have been gone through
+        log_path = log_file_descriptor.name
+        if log_path == '<stdout>': return
+        if not os.path.exists(log_path): return
+        if epoch % period == 0:
+            plot_learning_curves(log_path,
+                                 save_path=os.path.join(os.path.dirname(log_path), 'learning_curves.png'))
+    return inner
+
 
 def log_settings(args, modality, model_dir=None):
     if args.two_d:

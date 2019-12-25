@@ -3,7 +3,7 @@ import os
 
 from data import load_data, generate_loaders
 from train_loop import train
-from utils import csv_callback, log_settings
+from utils import metrics_callback_group, log_settings
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", "-e", help='Number of epochs to train on',
@@ -47,7 +47,7 @@ if __name__ == '__main__':
         os.mkdir(args.save_model)
 
     log_file = log_settings(args, 'mri', args.save_model)
-    callback = csv_callback(log_file)
+    callback = metrics_callback_group(log_file, plot_period=5)
     model = UNet(4, 1, args.channels)
     if not args.cpu:
         model.cuda()

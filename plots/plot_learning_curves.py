@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def plot_learning_curves(fpath, title=None):
+def plot_learning_curves(fpath, title=None, save_path=None):
     df = pd.read_csv(fpath)
     if title is None:
         title = os.path.basename(fpath)
@@ -24,7 +24,14 @@ def plot_learning_curves(fpath, title=None):
     ax3.set(xlabel='Epochs', ylabel='Volume Error', title='Volume Error')
 
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
+
+    if save_path is not None:
+        plt.ioff()
+        plt.switch_backend('agg')
+        fig.savefig(save_path, dpi='figure', format='png')
+        plt.close(fig)
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
