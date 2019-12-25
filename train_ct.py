@@ -39,6 +39,10 @@ if True and __name__ == '__main__':
         from unet_model_3d import UNet
 
     tensors = load_data(fname=args.dataset_location)
+    ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks = tensors
+    ct_inputs = ct_inputs[:, 0].unsqueeze(1)
+    tensors = ct_inputs, ct_lesions, mri_inputs, mri_lesions, masks
+
     ct_sets, _ = generate_loaders(tensors, batch_size=args.batch_size,
                                   use_increment_set=False, threeD= not args.two_d)
 
@@ -48,7 +52,7 @@ if True and __name__ == '__main__':
 
     log_file = log_settings(args, 'ct', args.save_model)
     callback = csv_callback(log_file)
-    model = UNet(5, 1, args.channels)
+    model = UNet(1, 1, args.channels)
     if not args.cpu:
         model.cuda()
     train(model, ct_sets['train'], ct_sets['test'],
