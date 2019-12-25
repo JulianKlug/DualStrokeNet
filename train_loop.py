@@ -4,7 +4,7 @@ from torch.optim import SGD, Adam
 from tqdm import tqdm
 import numpy as np
 
-from metrics import get_batch_volume, old_dice_loss, DiceLoss, CombinedDiceEntropyLoss
+from metrics import get_batch_volume, dice_score, DiceLoss, CombinedDiceEntropyLoss
 
 
 # From: https://stackoverflow.com/questions/6190331/how-to-implement-an-ordered-default-dict
@@ -76,10 +76,8 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
         metrics['volume_error'].append((torch.abs(predicted_volumes - true_volumes) / (true_volumes + 1e-5)).mean().item())
 
-        dice = 1 - old_dice_loss(hard_prediction, outputs).item()
+        dice = dice_score(hard_prediction, outputs).item()
         metrics['dice'].append(dice)
-        new_dice = 1 - DiceLoss().forward(hard_prediction, outputs)
-        metrics['new_dice'].append(new_dice)
 
         if optimizer is not None:
             optimizer.zero_grad()

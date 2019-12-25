@@ -12,7 +12,7 @@ def get_batch_volume(data):
     data = data.mean(1)
     return data
 
-def old_dice_loss(input, target, train=False):
+def dice_score(input, target, train=False):
     if train:
         smooth = 1
     else:
@@ -22,7 +22,7 @@ def old_dice_loss(input, target, train=False):
     tflat = target.view(-1)
     intersection = (iflat * tflat).sum()
     
-    return 1 - ((2. * intersection + smooth) /
+    return ((2. * intersection + smooth) /
               (iflat.sum() + tflat.sum() + smooth))
 
 
