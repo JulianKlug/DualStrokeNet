@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import torch, os
 import numpy as np
-from metrics import dice_loss
+from metrics import dice_score, CombinedDiceEntropyLoss
 
-data_dir = '/Users/julian/temp/dual_net_models/minimal_BCE/model_prediction'
-setting = 'test'
+data_dir = '/Users/julian/temp/dual_net_models/singleChannel_combi_loss/model_prediction'
+setting = 'train'
 inputs = torch.load(os.path.join(data_dir, setting + '_input.pth'), map_location=torch.device('cpu'))
 predictions = torch.load(os.path.join(data_dir, setting + '_predictions.pth'), map_location=torch.device('cpu'))
 lesions = torch.load(os.path.join(data_dir, setting + '_GT.pth'), map_location=torch.device('cpu'))
@@ -52,14 +52,14 @@ for i_slice, pred in enumerate(predictions):
         i_col += 1
     visual_add(np.squeeze(lesions[i_slice, ..., int(n_z/2)].detach().numpy()), i_slice, i_col, gs, '')
     visual_add(np.squeeze(pred.detach().numpy()), i_slice, i_col + 1, gs, '')
-    all_loss = dice_loss(torch.sigmoid(pred), lesions[i_slice, ..., int(n_z/2)], train=True).item()
+    all_loss = CombinedDiceEntropyLoss().forward(pred, lesions[i_slice, ..., int(n_z/2)]).item()
     print(str(all_loss))
 
-    visual_add(np.squeeze(torch.sigmoid(pred).detach().numpy()), i_slice, i_col + 2, gs, 'L: ' + str(all_loss)[0:5])
+    visual_add(np.squeeze(torch.sigmoid(pred).detach().numpy()), i_slice, i_col + 2, gs, 'combiL: ' + str(round(all_loss, 4)))
     hard_prediction = (pred > 0.5).float()
-    dice = 1 - dice_loss(hard_prediction, np.squeeze(lesions[i_slice, ..., int(n_z/2)])).item()
+    dice = dice_score(hard_prediction, np.squeeze(lesions[i_slice, ..., int(n_z/2)])).item()
     print(str(dice))
-    visual_add(np.squeeze(hard_prediction.detach().numpy()), i_slice, i_col + 3, gs, 'D: ' + str(dice)[0:5])
+    visual_add(np.squeeze(hard_prediction.detach().numpy()), i_slice, i_col + 3, gs, 'D: ' + str(round(dice, 4)))
     i_slice += 1
 
 

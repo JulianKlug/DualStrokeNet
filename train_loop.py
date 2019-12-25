@@ -4,7 +4,7 @@ from torch.optim import SGD, Adam
 from tqdm import tqdm
 import numpy as np
 
-from metrics import get_batch_volume, dice_loss
+from metrics import get_batch_volume, dice_score, DiceLoss, CombinedDiceEntropyLoss
 
 
 # From: https://stackoverflow.com/questions/6190331/how-to-implement-an-ordered-default-dict
@@ -53,7 +53,6 @@ class DefaultOrderedDict(OrderedDict):
 
 
 def forward(model, loader, criterion, optimizer=None, force_cpu=False):
-
     if optimizer is None:
         model.eval()
     else:
@@ -61,7 +60,7 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
     metrics = DefaultOrderedDict(list)
 
-    for inputs, outputs in tqdm(loader):
+    for inputs, outputs in tqdm(loader, position=0, leave=True):
         if not force_cpu:
             inputs = inputs.cuda(non_blocking=True)
             outputs = outputs.cuda(non_blocking=True)
@@ -77,7 +76,7 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
         metrics['volume_error'].append((torch.abs(predicted_volumes - true_volumes) / (true_volumes + 1e-5)).mean().item())
 
-        dice = 1 - dice_loss(hard_prediction, outputs).item()
+        dice = dice_score(hard_prediction, outputs).item()
         metrics['dice'].append(dice)
 
         if optimizer is not None:
@@ -90,11 +89,14 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
 
 def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, epochs=10, split=150, save_path=None,
           force_cpu=False):
-    criterion = torch.nn.BCEWithLogitsLoss()
+    # criterion = torch.nn.BCEWithLogitsLoss()
+    # criterion = DiceLoss()
+    criterion = CombinedDiceEntropyLoss()
     first_phase_optimizer = SGD(model.parameters(), lr=lr_1, momentum=0)
     second_phase_optimizer = SGD(model.parameters(), lr=lr_2, momentum=0.99)
     best_loss = np.inf
     for e in range(epochs):
+        print('Epoch:', e + 1, '/', epochs)
         if e < split:
             optimizer = first_phase_optimizer
         else:
@@ -107,6 +109,7 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
             metrics['train_' + k] = v
         for k, v in vm.items():
             metrics['test_' + k] = v
+        print(metrics)
         if metrics_callback is not None:
             metrics_callback(metrics)
         if metrics['train_loss'] < best_loss and save_path is not None:
