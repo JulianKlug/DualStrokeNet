@@ -79,7 +79,7 @@ def forward(model, loader, criterion, optimizer=None, force_cpu=False):
         dice = 1 - old_dice_loss(hard_prediction, outputs).item()
         metrics['dice'].append(dice)
         new_dice = 1 - DiceLoss().forward(hard_prediction, outputs)
-        metrics['new_dice'].append(dice)
+        metrics['new_dice'].append(new_dice)
 
         if optimizer is not None:
             optimizer.zero_grad()

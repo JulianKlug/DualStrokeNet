@@ -60,7 +60,7 @@ class CombinedDiceEntropyLoss(nn.Module):
     def __init__(self, weight=None):
 
         super(CombinedDiceEntropyLoss, self).__init__()
-        self.BCE_loss = BinaryCrossEntropyLoss2d()
+        self.BCE_loss = torch.nn.BCEWithLogitsLoss()
         self.Dice_loss = DiceLoss()
 
     def forward(self, logits, targets):
