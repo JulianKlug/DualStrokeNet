@@ -1,3 +1,4 @@
+import torch
 from sklearn.metrics import roc_auc_score
 import torch.nn as nn
 
@@ -40,3 +41,29 @@ class DiceLoss(nn.Module):
             y_pred.sum() + y_true.sum() + self.smooth
         )
         return 1. - dsc
+
+
+class BinaryCrossEntropyLoss2d(nn.Module):
+    def __init__(self, weight=None):
+
+        super(BinaryCrossEntropyLoss2d, self).__init__()
+        self.bce_loss = nn.BCELoss(weight, reduction = 'elementwise_mean')
+
+    def forward(self, logits, targets):
+        probs = torch.sigmoid(logits)
+        probs_flat = probs.view(-1)  # Flatten
+        targets_flat = targets.view(-1)  # Flatten
+        return self.bce_loss(probs_flat, targets_flat)
+
+
+class CombinedDiceEntropyLoss(nn.Module):
+    def __init__(self, weight=None):
+
+        super(CombinedDiceEntropyLoss, self).__init__()
+        self.BCE_loss = BinaryCrossEntropyLoss2d()
+        self.Dice_loss = DiceLoss()
+
+    def forward(self, logits, targets):
+
+        return self.BCE_loss.forward(logits, targets) + \
+                    self.Dice_loss.forward(logits, targets)
