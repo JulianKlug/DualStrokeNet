@@ -30,8 +30,6 @@ def plot_learning_curves(fpath, title=None, save_path=None):
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     if save_path is not None:
-        plt.ioff()
-        plt.switch_backend('agg')
         fig.savefig(save_path, dpi='figure', format='png')
         plt.close(fig)
     else:
