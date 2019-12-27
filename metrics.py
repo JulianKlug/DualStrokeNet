@@ -119,3 +119,18 @@ class TverskyLoss(nn.Module):
 
         return tversky_loss(targets, logits, self.alpha, self.beta, eps=1e-7)
 
+
+class FocalTverskyLoss(nn.Module):
+    # Goal: better segmentation loss for small spots
+    # from https://arxiv.org/pdf/1810.07842.pdf
+    def __init__(self, weight=None):
+        super(FocalTverskyLoss, self).__init__()
+        # Tversky loss variables
+        self.alpha = 0.3
+        self.beta = 0.7
+        # focal TL vars
+        self.gamma = 0.75
+
+    def forward(self, logits, targets):
+        tl = tversky_loss(targets, logits, self.alpha, self.beta, eps=1e-7)
+        return torch.pow((1-tl), self.gamma)
