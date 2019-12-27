@@ -16,13 +16,13 @@ parser.add_argument("--cpu", help='Use CPU',
 args = parser.parse_args()
 
 
-def sample_predict(model_path, data_path, force_cpu=False):
+def sample_predict(model_path, data_path,mod, force_cpu=False):
     img_scale = 0.07
     val_percent = 0.2
 
     dataset = BasicDataset(os.path.join(data_path, 'train'),
                            os.path.join(data_path, 'train_masks'), img_scale)
-    dataset[0][0].shape()
+#    dataset[0][0].shape()
     n_val = int(len(dataset) * val_percent)
     n_train = len(dataset) - n_val
     train_set, val_set = random_split(dataset, [n_train, n_val])
@@ -36,10 +36,10 @@ def sample_predict(model_path, data_path, force_cpu=False):
     model.eval()
 
     train_input, train_GT = map(list, zip(*[subj_data for subj_data in tqdm(train_loader)]))
-    train_predictions = [model(x[:, :, :, :]) for x in train_input]
+    train_predictions = [model(x) for x in train_input]
 
     test_input, test_GT = map(list, zip(*[subj_data for subj_data in tqdm(val_loader)]))
-    test_predictions = [model(x[:, :, :, :]) for x in test_input]
+    test_predictions = [model(x) for x in test_input]
 
 
     save_dir = os.path.join(os.path.dirname(model_path), 'model_prediction')

@@ -5,8 +5,12 @@ import matplotlib.pyplot as plt
 
 def plot_learning_curves(fpath, title=None, save_path=None):
     df = pd.read_csv(fpath)
+    print('Plotting')
     if title is None:
         title = os.path.basename(fpath)
+    if save_path is not None:
+        plt.ioff()
+        plt.switch_backend('agg')
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     fig.suptitle(title)

@@ -40,7 +40,7 @@ if True and __name__ == '__main__':
     else:
         from unet_model_3d import UNet
 
-    img_scale = 0.5
+    img_scale = 0.07
     val_percent = 0.2
 
     dataset = BasicDataset(os.path.join(args.dataset_location, 'train'),
@@ -57,7 +57,7 @@ if True and __name__ == '__main__':
         os.mkdir(args.save_model)
 
     log_file = log_settings(args, 'sample', args.save_model)
-    callback = metrics_callback_group(log_file, plot_period=5)
+    callback = metrics_callback_group(log_file, plot_period=1)
     model = UNet(3, 1, args.channels)
     if not args.cpu:
         model.cuda()
