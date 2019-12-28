@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 def plot_learning_curves(fpath, title=None, save_path=None):
     df = pd.read_csv(fpath)
+    print('Plotting')
     if title is None:
         title = os.path.basename(fpath)
     if save_path is not None:
