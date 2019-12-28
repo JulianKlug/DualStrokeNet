@@ -2,6 +2,7 @@ import torch
 from torch import Tensor, einsum
 from sklearn.metrics import roc_auc_score
 import torch.nn as nn
+import torch.nn.functional as F
 from typing import Any, Callable, Iterable, List, Set, Tuple, TypeVar, Union
 
 
@@ -144,7 +145,7 @@ class SurfaceLoss(nn.Module):
         super(SurfaceLoss, self).__init__()
 
     def forward(self, logits, targets):
-        return surface_loss(torch.sigmoid(logits), targets)
+        return surface_loss(F.softmax(logits), targets)
 
 
 def surface_loss(probs: Tensor, dist_maps: Tensor) -> Tensor:
