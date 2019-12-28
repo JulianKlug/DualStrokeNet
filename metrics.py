@@ -1,6 +1,9 @@
 import torch
+from torch import Tensor, einsum
 from sklearn.metrics import roc_auc_score
 import torch.nn as nn
+from typing import Any, Callable, Iterable, List, Set, Tuple, TypeVar, Union
+
 
 def compute_roc(prediction, outputs):
     y_true = outputs.reshape(-1)
@@ -134,3 +137,42 @@ class FocalTverskyLoss(nn.Module):
     def forward(self, logits, targets):
         tl = tversky_loss(targets, logits, self.alpha, self.beta, eps=1e-7)
         return torch.pow((1-tl), self.gamma)
+
+
+class SurfaceLoss(nn.Module):
+    def __init__(self, weight=None):
+        super(SurfaceLoss, self).__init__()
+
+    def forward(self, logits, targets):
+        return surface_loss(torch.sigmoid(logits), targets)
+
+
+def surface_loss(probs: Tensor, dist_maps: Tensor) -> Tensor:
+    # from http: // proceedings.mlr.press / v102 / kervadec19a / kervadec19a.pdf
+    assert simplex(probs)
+    assert not one_hot(dist_maps)
+
+    pc = probs.type(torch.float32)
+    dc = dist_maps.type(torch.float32)
+
+    multipled = einsum("bcwh,bcwh->bcwh", pc, dc)
+
+    loss = multipled.mean()
+
+    return loss
+
+# Assert utils
+def uniq(a: Tensor) -> Set:
+    return set(torch.unique(a.cpu()).numpy())
+
+def simplex(t: Tensor, axis=1) -> bool:
+    _sum = t.sum(axis).type(torch.float32)
+    _ones = torch.ones_like(_sum, dtype=torch.float32)
+    return torch.allclose(_sum, _ones)
+
+
+def one_hot(t: Tensor, axis=1) -> bool:
+    return simplex(t, axis) and sset(t, [0, 1])
+
+def sset(a: Tensor, sub: Iterable) -> bool:
+    return uniq(a).issubset(sub)
