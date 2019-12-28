@@ -133,4 +133,4 @@ class FocalTverskyLoss(nn.Module):
 
     def forward(self, logits, targets):
         tl = tversky_loss(targets, logits, self.alpha, self.beta, eps=1e-7)
-        return torch.pow((1-tl), self.gamma)
+        return torch.pow(tl, self.gamma)
