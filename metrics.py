@@ -147,6 +147,17 @@ class SurfaceLoss(nn.Module):
     def forward(self, logits, targets):
         return surface_loss(F.softmax(logits), targets)
 
+class CombinedFocalTverskySurfaceLoss(nn.Module):
+    def __init__(self, weight=None):
+        super(CombinedFocalTverskySurfaceLoss, self).__init__()
+        self.focalTversky = FocalTverskyLoss()
+        self.SurfaceLoss = SurfaceLoss()
+        self.alpha = 0.1
+
+    def forward(self, logits, targets):
+        return (1 - self.alpha) * self.focalTversky.forward(logits, targets) \
+                    + self.alpha * self.SurfaceLoss.forward(logits, targets)
+
 
 def surface_loss(probs: Tensor, dist_maps: Tensor) -> Tensor:
     # from http: // proceedings.mlr.press / v102 / kervadec19a / kervadec19a.pdf
