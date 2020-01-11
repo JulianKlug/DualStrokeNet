@@ -91,8 +91,7 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
           force_cpu=False):
     # criterion = torch.nn.BCEWithLogitsLoss()
     # criterion = DiceLoss()
-    # criterion = CombinedDiceEntropyLoss()
-    criterion = CombinedFocalTverskySurfaceLoss()
+    criterion = FocalTverskyLoss()
     first_phase_optimizer = SGD(model.parameters(), lr=lr_1, momentum=0)
     second_phase_optimizer = SGD(model.parameters(), lr=lr_2, momentum=0.99)
     best_loss = np.inf
