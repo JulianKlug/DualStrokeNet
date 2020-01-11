@@ -4,7 +4,7 @@ from torch.optim import SGD, Adam
 from tqdm import tqdm
 import numpy as np
 
-from metrics import get_batch_volume, dice_score, DiceLoss, CombinedDiceEntropyLoss
+from metrics import get_batch_volume, dice_score, DiceLoss, CombinedDiceEntropyLoss, FocalTverskyLoss, CombinedFocalTverskySurfaceLoss
 
 
 # From: https://stackoverflow.com/questions/6190331/how-to-implement-an-ordered-default-dict
@@ -91,7 +91,7 @@ def train(model, train_loader, val_loader, lr_1, lr_2, metrics_callback=None, ep
           force_cpu=False):
     # criterion = torch.nn.BCEWithLogitsLoss()
     # criterion = DiceLoss()
-    criterion = CombinedDiceEntropyLoss()
+    criterion = FocalTverskyLoss()
     first_phase_optimizer = SGD(model.parameters(), lr=lr_1, momentum=0)
     second_phase_optimizer = SGD(model.parameters(), lr=lr_2, momentum=0.99)
     best_loss = np.inf
