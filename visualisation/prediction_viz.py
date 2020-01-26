@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import torch, os
 import numpy as np
-from metrics import dice_score, CombinedDiceEntropyLoss
+from metrics import dice_score, FocalTverskyLoss
 
 data_dir = '/Users/julian/temp/dual_net_models/singleChannel_combi_loss/model_prediction'
 setting = 'train'
@@ -52,10 +52,9 @@ for i_slice, pred in enumerate(predictions):
         i_col += 1
     visual_add(np.squeeze(lesions[i_slice, ..., int(n_z/2)].detach().numpy()), i_slice, i_col, gs, '')
     visual_add(np.squeeze(pred.detach().numpy()), i_slice, i_col + 1, gs, '')
-    all_loss = CombinedDiceEntropyLoss().forward(pred, lesions[i_slice, ..., int(n_z/2)]).item()
-    print(str(all_loss))
+    all_loss = FocalTverskyLoss().forward(pred, lesions[i_slice, ..., int(n_z/2)]).item()
 
-    visual_add(np.squeeze(torch.sigmoid(pred).detach().numpy()), i_slice, i_col + 2, gs, 'combiL: ' + str(round(all_loss, 4)))
+    visual_add(np.squeeze(torch.sigmoid(pred).detach().numpy()), i_slice, i_col + 2, gs, 'FTL: ' + str(round(all_loss, 4)))
     hard_prediction = (pred > 0.5).float()
     dice = dice_score(hard_prediction, np.squeeze(lesions[i_slice, ..., int(n_z/2)])).item()
     print(str(dice))
