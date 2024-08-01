@@ -1,14 +1,15 @@
-import sys, os, argparse
+import sys, os, argparse, torch
 sys.path.insert(0, '../')
 from data import load_data, generate_loaders
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import nibabel as nib
+import numpy as np
 
 
 def visualize_dataset(data_dir, modality='mri', threeD=True, save_as_nifti=False):
-    tensors = load_data(fname=os.path.join(data_dir, 'standardized_data_set.npz'))
+    tensors = load_data(fname=os.path.join(data_dir, 'data_set.npz'))
 
     if save_as_nifti:
         reference_img = nib.load(os.path.join(data_dir, 'reference.nii'))
@@ -52,14 +53,22 @@ def visualize_dataset(data_dir, modality='mri', threeD=True, save_as_nifti=False
 
         for subj in range(len(list)):
             subj_data = list[subj]
-            print('i/o', len(subj_data))
+            # print('i/o', len(subj_data))
             # input data (shape n_batch, n_c, x ,y , z)
-            print('input', subj_data[0].shape)
+            # print('input', subj_data[0].shape)
             if not threeD:
                 subj_data = (subj_data[0].permute(1, 2, 3, 0).unsqueeze(0), subj_data[1].permute(1, 2, 3, 0).unsqueeze(0))
             print('input', subj_data[0].shape)
+
+            # visual_add(np.empty((3, 3, 3)), i_subj, 0, gs, subject)
+
             for channel in range(subj_data[0].shape[1]):
-                visual_add_center(subj_data[0][0, channel], subj, channel, gs)
+                non_zero_idx = subj_data[0][0, channel].nonzero(as_tuple=True)
+                print(non_zero_idx[0], subj_data[0][0, channel].shape)
+                mean_voxel_value = subj_data[0][0, channel][non_zero_idx].mean().item()
+                print(mean_voxel_value, type(subj_data[0][0, channel]))
+                std_voxel_value = subj_data[0][0, channel].std().item()
+                visual_add_center(subj_data[0][0, channel], subj, channel, gs, image_id=str(mean_voxel_value)[0:5])
                 if save_as_nifti:
                     binary_img = nib.Nifti1Image(subj_data[0].squeeze().permute(1,2,3,0).numpy(), affine=coordinate_space)
                     nib.save(binary_img, os.path.join(data_dir, str(subj) + '_' + setting + '_mri.nii'))

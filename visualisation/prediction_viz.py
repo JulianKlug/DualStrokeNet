@@ -46,7 +46,7 @@ def visual_add(image, i_subj, i_image, gs, image_id=None):
 # %%
 i_slice = 0
 for i_slice, pred in enumerate(predictions):
-    i_col = 0
+    i_col = 1
     for channel in range(n_c):
         visual_add(np.squeeze(inputs[i_slice, channel, ..., int(n_z/2)].detach().numpy()), i_slice, i_col, gs, '')
         i_col += 1
